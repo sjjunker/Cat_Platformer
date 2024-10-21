@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		962D95D42CC6DE9200B66CB7 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 962D95D32CC6DE8500B66CB7 /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		962D95B72CC6A01D00B66CB7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		962D959F2CC6A01C00B66CB7 /* Cat_Platformer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cat_Platformer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		962D95B62CC6A01D00B66CB7 /* Cat_PlatformerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Cat_PlatformerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		962D95C02CC6A01D00B66CB7 /* Cat_PlatformerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Cat_PlatformerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		962D95D32CC6DE8500B66CB7 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		962D95962CC6A01C00B66CB7 = {
 			isa = PBXGroup;
 			children = (
+				962D95D32CC6DE8500B66CB7 /* README.md */,
 				962D95A12CC6A01C00B66CB7 /* Cat_Platformer */,
 				962D95B92CC6A01D00B66CB7 /* Cat_PlatformerTests */,
 				962D95C32CC6A01D00B66CB7 /* Cat_PlatformerUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				962D95D42CC6DE9200B66CB7 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

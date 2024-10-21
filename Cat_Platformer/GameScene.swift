@@ -10,12 +10,52 @@ import GameplayKit
 
 class GameScene: SKScene {
     
+    var cat: SKSpriteNode!
     var entities = [GKEntity]()
     var graphs = [String : GKGraph]()
     
     private var lastUpdateTime : TimeInterval = 0
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
+    
+    private var catAtlas: SKTextureAtlas {
+        return SKTextureAtlas(named: "Cat")
+    }
+    
+    private var catTexture: SKTexture {
+            return catAtlas.textureNamed("idle0")
+        }
+    
+    private var catIdleTextures: [SKTexture] {
+        return [
+            catAtlas.textureNamed("idle0"),
+            catAtlas.textureNamed("idle1"),
+            catAtlas.textureNamed("idle2"),
+            catAtlas.textureNamed("idle3"),
+            catAtlas.textureNamed("idle4"),
+            catAtlas.textureNamed("idle5"),
+            catAtlas.textureNamed("idle6")
+        ]
+    }
+    
+    private func setupCat() {
+        cat = SKSpriteNode(texture: catTexture, size: CGSize(width: 70, height: 46))
+        cat.position = CGPoint(x: 0, y: 0)
+        
+        addChild(cat)
+    }
+    
+    override func didMove(to view: SKView) {
+        backgroundColor = SKColor.white
+        self.setupCat()
+        self.startCatIdleAnimation()
+    }
+    
+    func startCatIdleAnimation() {
+        let idleAnimation = SKAction.animate(with: catIdleTextures, timePerFrame: 0.3)
+        
+        cat.run(SKAction.repeatForever(idleAnimation), withKey: "catIdleAnimation")
+    }
     
     override func sceneDidLoad() {
         
