@@ -88,11 +88,12 @@ class GameScene: SKScene {
     }
     
     private func setupCat() {
-        cat = SKSpriteNode(texture: catTexture, size: CGSize(width: 70, height: 46))
+        cat = SKSpriteNode(texture: catTexture, size: CGSize(width: 70 * 3, height: 46 * 3))
         cat.position = CGPoint(x: -1200, y: -400)
         cat.zPosition = 2
-        cat.size = CGSize(width: 70 * 3, height: 46 * 3)
-        
+        cat.physicsBody = SKPhysicsBody(texture: cat.texture!, size: cat.texture!.size())
+        cat.physicsBody?.isDynamic = true
+        cat.physicsBody?.allowsRotation = false
         addChild(cat)
     }
     
@@ -172,7 +173,12 @@ class GameScene: SKScene {
     }
     
     
-    func touchDown(atPoint pos : CGPoint) {
+    //MARK: Movement Functions
+    
+    
+    
+    //MARK: Default movement functions?
+    /*func touchDown(atPoint pos : CGPoint) {
         if let n = self.spinnyNode?.copy() as! SKShapeNode? {
             n.position = pos
             n.strokeColor = SKColor.green
@@ -206,14 +212,24 @@ class GameScene: SKScene {
     
     override func mouseUp(with event: NSEvent) {
         self.touchUp(atPoint: event.location(in: self))
-    }
+    }*/
     
+    
+    //TODO: Work out kinks in movement
     override func keyDown(with event: NSEvent) {
         switch event.keyCode {
-        case 0x31:
-            if let label = self.label {
-                label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-            }
+        case 0x0D: //up
+            startCatJumpAnimation()
+            let moveNodeUp = SKAction.moveBy(x:500.0, y:500.0, duration:1.0)
+            cat.run(moveNodeUp, withKey: "catJump")
+        case 0x02: //right
+            startCatWalkAnimation()
+            let moveNodeLeft = SKAction.moveBy(x:-300.0, y:0.0, duration:1.0)
+            cat.run(SKAction.repeatForever(moveNodeLeft), withKey: "catLeft")
+        case 0x00: //left
+            startCatWalkAnimation()
+            let moveNodeRight = SKAction.moveBy(x:300.0, y:0.0, duration:1.0)
+            cat.run(SKAction.repeatForever(moveNodeRight), withKey: "catRight")
         default:
             print("keyDown: \(event.characters!) keyCode: \(event.keyCode)")
         }
