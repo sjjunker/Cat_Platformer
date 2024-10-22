@@ -33,3 +33,12 @@
 * Item 1
 * Item 2
 * Item 3
+
+
+# Credits
+
+* Sneaky Adventure by Kevin MacLeod | https://incompetech.com/
+Music promoted by https://www.chosic.com/free-music/all/
+Creative Commons CC BY 3.0
+https://creativecommons.org/licenses/by/3.0/
+ 

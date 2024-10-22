@@ -7,10 +7,12 @@
 
 import SpriteKit
 import GameplayKit
+import AVFoundation
 
 class GameScene: SKScene {
     
     var cat: SKSpriteNode!
+    var backgroundMusic: SKAudioNode?
     var entities = [GKEntity]()
     var graphs = [String : GKGraph]()
     
@@ -18,6 +20,8 @@ class GameScene: SKScene {
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
     
+    
+    //MARK: Cat player functions
     private var catAtlas: SKTextureAtlas {
         return SKTextureAtlas(named: "Cat")
     }
@@ -26,6 +30,7 @@ class GameScene: SKScene {
             return catAtlas.textureNamed("idle0")
         }
     
+    //Textures
     private var catIdleTextures: [SKTexture] {
         return [
             catAtlas.textureNamed("idle0"),
@@ -38,9 +43,55 @@ class GameScene: SKScene {
         ]
     }
     
+    private var catWalkTextures: [SKTexture] {
+        return [
+            catAtlas.textureNamed("walk0"),
+            catAtlas.textureNamed("walk1"),
+            catAtlas.textureNamed("walk2"),
+            catAtlas.textureNamed("walk3"),
+            catAtlas.textureNamed("walk4"),
+            catAtlas.textureNamed("walk5"),
+            catAtlas.textureNamed("walk6")
+        ]
+    }
+    
+    private var catRunTextures: [SKTexture] {
+        return [
+            catAtlas.textureNamed("run0"),
+            catAtlas.textureNamed("run1"),
+            catAtlas.textureNamed("run2"),
+            catAtlas.textureNamed("run3"),
+            catAtlas.textureNamed("run4"),
+            catAtlas.textureNamed("run5"),
+            catAtlas.textureNamed("run6")
+        ]
+    }
+    
+    private var catJumpTextures: [SKTexture] {
+        return [
+            catAtlas.textureNamed("jump0"),
+            catAtlas.textureNamed("jump1"),
+            catAtlas.textureNamed("jump2"),
+            catAtlas.textureNamed("jump3"),
+            catAtlas.textureNamed("jump4"),
+            catAtlas.textureNamed("jump5"),
+            catAtlas.textureNamed("jump6")
+        ]
+    }
+    
+    private var catAttackTextures: [SKTexture] {
+        return [
+            catAtlas.textureNamed("attack0"),
+            catAtlas.textureNamed("attack1"),
+            catAtlas.textureNamed("attack2")
+        ]
+    }
+    
     private func setupCat() {
         cat = SKSpriteNode(texture: catTexture, size: CGSize(width: 70, height: 46))
-        cat.position = CGPoint(x: 0, y: 0)
+        cat.position = CGPoint(x: -1200, y: -400)
+        cat.zPosition = 2
+        cat.size = CGSize(width: 70 * 3, height: 46 * 3)
         
         addChild(cat)
     }
@@ -51,13 +102,51 @@ class GameScene: SKScene {
         self.startCatIdleAnimation()
     }
     
+    //Animations
     func startCatIdleAnimation() {
         let idleAnimation = SKAction.animate(with: catIdleTextures, timePerFrame: 0.3)
         
         cat.run(SKAction.repeatForever(idleAnimation), withKey: "catIdleAnimation")
     }
     
+    func startCatWalkAnimation() {
+        let walkAnimation = SKAction.animate(with: catWalkTextures, timePerFrame: 0.3)
+        
+        cat.run(SKAction.repeatForever(walkAnimation), withKey: "catWalkAnimation")
+    }
+    
+    func startCatRunAnimation() {
+        let runAnimation = SKAction.animate(with: catRunTextures, timePerFrame: 0.3)
+        
+        cat.run(SKAction.repeatForever(runAnimation), withKey: "catRunAnimation")
+    }
+    
+    func startCatJumpAnimation() {
+        let jumpAnimation = SKAction.animate(with: catJumpTextures, timePerFrame: 0.3)
+        
+        cat.run(SKAction.repeatForever(jumpAnimation), withKey: "catJumpAnimation")
+    }
+    
+    func startCatAttackAnimation() {
+        let attackAnimation = SKAction.animate(with: catAttackTextures, timePerFrame: 0.3)
+        
+        cat.run(SKAction.repeatForever(attackAnimation), withKey: "catAttackAnimation")
+    }
+    
+    //MARK: Background Music
+    func setBackgroundMusic() {
+        let path = Bundle.main.path(forResource: "backgroundMusic", ofType: "mp3")!
+        let url = URL(fileURLWithPath: path)
+        
+        let backgroundMusic = SKAudioNode(url: url)
+        backgroundMusic.autoplayLooped = true
+        addChild(backgroundMusic)
+    }
+    
+    //MARK: Basic game functions
     override func sceneDidLoad() {
+        
+        self.setBackgroundMusic()
         
         self.lastUpdateTime = 0
         
