@@ -29,8 +29,18 @@ class GameScene: SKScene {
     private var catTexture: SKTexture {
             return catAtlas.textureNamed("idle0")
         }
+
+    private func setupCat() {
+        cat = SKSpriteNode(texture: catTexture, size: CGSize(width: 70 * 3, height: 46 * 3))
+        cat.position = CGPoint(x: -1200, y: -400)
+        cat.zPosition = 2
+        cat.physicsBody = SKPhysicsBody(texture: cat.texture!, size: cat.texture!.size())
+        cat.physicsBody?.isDynamic = true
+        cat.physicsBody?.allowsRotation = false
+        addChild(cat)
+    }
     
-    //Textures
+    //MARK: Atlases
     private var catIdleTextures: [SKTexture] {
         return [
             catAtlas.textureNamed("idle0"),
@@ -87,22 +97,7 @@ class GameScene: SKScene {
         ]
     }
     
-    private func setupCat() {
-        cat = SKSpriteNode(texture: catTexture, size: CGSize(width: 70 * 3, height: 46 * 3))
-        cat.position = CGPoint(x: -1200, y: -400)
-        cat.zPosition = 2
-        cat.physicsBody = SKPhysicsBody(texture: cat.texture!, size: cat.texture!.size())
-        cat.physicsBody?.isDynamic = true
-        cat.physicsBody?.allowsRotation = false
-        addChild(cat)
-    }
-    
-    override func didMove(to view: SKView) {
-        backgroundColor = SKColor.white
-        self.setupCat()
-        self.startCatIdleAnimation()
-    }
-    
+    //MARK: Animations
     //Animations
     func startCatIdleAnimation() {
         let idleAnimation = SKAction.animate(with: catIdleTextures, timePerFrame: 0.3)
@@ -110,22 +105,32 @@ class GameScene: SKScene {
         cat.run(SKAction.repeatForever(idleAnimation), withKey: "catIdleAnimation")
     }
     
-    func startCatWalkAnimation() {
-        let walkAnimation = SKAction.animate(with: catWalkTextures, timePerFrame: 0.3)
+    func startCatWalkAnimation(xCoor: CGFloat) {
+        if (xCoor < 0) {
+            cat.xScale = -1
+        } else {
+            cat.xScale = 1
+        }
         
-        cat.run(SKAction.repeatForever(walkAnimation), withKey: "catWalkAnimation")
+        let force = CGVector(dx: xCoor, dy: 0.0)
+        cat.physicsBody?.applyForce(force)
+        let walkAnimation = SKAction.animate(with: catWalkTextures, timePerFrame: 0.1)
+        cat.run(walkAnimation, withKey: "catWalkAnimation")
     }
     
     func startCatRunAnimation() {
-        let runAnimation = SKAction.animate(with: catRunTextures, timePerFrame: 0.3)
+        let runAnimation = SKAction.animate(with: catRunTextures, timePerFrame: 0.15)
         
         cat.run(SKAction.repeatForever(runAnimation), withKey: "catRunAnimation")
     }
     
     func startCatJumpAnimation() {
-        let jumpAnimation = SKAction.animate(with: catJumpTextures, timePerFrame: 0.3)
-        
-        cat.run(SKAction.repeatForever(jumpAnimation), withKey: "catJumpAnimation")
+        let jumpAnimation = SKAction.animate(with: catJumpTextures, timePerFrame: 0.1)
+        let force = CGVector(dx: 0.0, dy: 50.0)
+        let jumpMovement = SKAction.applyForce(force, duration: 0.5)
+        //cat.physicsBody?.applyForce(force)
+        let group = SKAction.group([jumpAnimation, jumpMovement])
+        cat.run(group, withKey: "catJump")
     }
     
     func startCatAttackAnimation() {
@@ -144,7 +149,30 @@ class GameScene: SKScene {
         addChild(backgroundMusic)
     }
     
+    //MARK: Movement Functions
+    //TODO: Work out kinks in movement
+    override func keyDown(with event: NSEvent) {
+        var numKeyPresses = 0
+        switch event.keyCode {
+        case 0x0D: //up right
+            startCatJumpAnimation()
+        case 0x02: //right
+            startCatWalkAnimation(xCoor: 150)
+        case 0x00: //left
+            startCatWalkAnimation(xCoor: -150)
+        default:
+            startCatIdleAnimation()
+        }
+    }
+    
+    
     //MARK: Basic game functions
+    override func didMove(to view: SKView) {
+        backgroundColor = SKColor.white
+        self.setupCat()
+        self.startCatIdleAnimation()
+    }
+    
     override func sceneDidLoad() {
         
         self.setBackgroundMusic()
@@ -171,70 +199,6 @@ class GameScene: SKScene {
                                               SKAction.removeFromParent()]))
         }
     }
-    
-    
-    //MARK: Movement Functions
-    
-    
-    
-    //MARK: Default movement functions?
-    /*func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
-        }
-    }
-    
-    func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
-        }
-    }
-    
-    func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
-        }
-    }
-    
-    override func mouseDown(with event: NSEvent) {
-        self.touchDown(atPoint: event.location(in: self))
-    }
-    
-    override func mouseDragged(with event: NSEvent) {
-        self.touchMoved(toPoint: event.location(in: self))
-    }
-    
-    override func mouseUp(with event: NSEvent) {
-        self.touchUp(atPoint: event.location(in: self))
-    }*/
-    
-    
-    //TODO: Work out kinks in movement
-    override func keyDown(with event: NSEvent) {
-        switch event.keyCode {
-        case 0x0D: //up
-            startCatJumpAnimation()
-            let moveNodeUp = SKAction.moveBy(x:500.0, y:500.0, duration:1.0)
-            cat.run(moveNodeUp, withKey: "catJump")
-        case 0x02: //right
-            startCatWalkAnimation()
-            let moveNodeLeft = SKAction.moveBy(x:-300.0, y:0.0, duration:1.0)
-            cat.run(SKAction.repeatForever(moveNodeLeft), withKey: "catLeft")
-        case 0x00: //left
-            startCatWalkAnimation()
-            let moveNodeRight = SKAction.moveBy(x:300.0, y:0.0, duration:1.0)
-            cat.run(SKAction.repeatForever(moveNodeRight), withKey: "catRight")
-        default:
-            print("keyDown: \(event.characters!) keyCode: \(event.keyCode)")
-        }
-    }
-    
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
