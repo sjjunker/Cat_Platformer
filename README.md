@@ -22,7 +22,7 @@
 * [OpenGameArt](https://opengameart.org)
 * [Ezgif](https://ezgif.com/split)
 * [Sprite Animation with SpriteKit](https://www.createwithswift.com/sprite-animation-with-spritekit/)
-* [Ezgif](https://ezgif.com/split)
+* [SpriteKit Tutorial for Beginners](https://www.kodeco.com/71-spritekit-tutorial-for-beginners)
 * [Ezgif](https://ezgif.com/split)
 * [Ezgif](https://ezgif.com/split)
 

@@ -9,17 +9,47 @@ import SpriteKit
 import GameplayKit
 import AVFoundation
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var cat: SKSpriteNode!
+    var pointLabel: SKLabelNode!
+    var userPoints: Double = 0
     var backgroundMusic: SKAudioNode?
     var entities = [GKEntity]()
     var graphs = [String : GKGraph]()
     
     private var lastUpdateTime : TimeInterval = 0
-    private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
     
+    //Points
+    private func setupPointLabel() {
+        pointLabel = SKLabelNode(fontNamed: "Chalkduster")
+        pointLabel.zPosition = 1
+        pointLabel.text = "Points: \(userPoints)"
+        pointLabel.fontSize = 24
+        pointLabel.position = CGPoint(x: 550, y: 600)
+        addChild(pointLabel)
+    }
+    
+    //MARK: Fish functions
+    private var fishTexture: SKTexture {
+        return SKTexture(imageNamed: "GreenFish")
+    }
+    
+    private func setupFish(xPosition: CGFloat, yPosition: CGFloat) {
+        let fish = SKSpriteNode(texture: fishTexture, size: CGSize(width: 100, height: 100))
+        fish.position = CGPoint(x: xPosition, y: yPosition)
+        fish.zPosition = 2
+        
+        //Physics
+        fish.physicsBody = SKPhysicsBody(circleOfRadius: 60)
+        fish.physicsBody?.isDynamic = false
+        fish.physicsBody?.allowsRotation = false
+        fish.physicsBody?.affectedByGravity = false
+        fish.physicsBody?.categoryBitMask = 2
+        fish.physicsBody?.contactTestBitMask = 1
+        
+        addChild(fish)
+    }
     
     //MARK: Cat player functions
     private var catAtlas: SKTextureAtlas {
@@ -34,9 +64,21 @@ class GameScene: SKScene {
         cat = SKSpriteNode(texture: catTexture, size: CGSize(width: 70 * 3, height: 46 * 3))
         cat.position = CGPoint(x: -1200, y: -400)
         cat.zPosition = 2
+        
+        //Physics
         cat.physicsBody = SKPhysicsBody(texture: cat.texture!, size: cat.texture!.size())
         cat.physicsBody?.isDynamic = true
         cat.physicsBody?.allowsRotation = false
+        cat.physicsBody?.linearDamping = 0.75
+        cat.physicsBody?.friction = 0.1
+        cat.physicsBody?.categoryBitMask = 1
+        cat.physicsBody?.contactTestBitMask = 2
+
+        //World boundaries
+        let boundaryX = SKConstraint.positionX(SKRange(lowerLimit: -1280, upperLimit: 1280))
+        let boundaryY = SKConstraint.positionY(SKRange(lowerLimit: -800, upperLimit: 650))
+        cat.constraints = [boundaryX, boundaryY]
+        
         addChild(cat)
     }
     
@@ -100,12 +142,12 @@ class GameScene: SKScene {
     //MARK: Animations
     //Animations
     func startCatIdleAnimation() {
-        let idleAnimation = SKAction.animate(with: catIdleTextures, timePerFrame: 0.3)
+        let idleAnimation = SKAction.animate(with: catIdleTextures, timePerFrame: 0.1)
         
         cat.run(SKAction.repeatForever(idleAnimation), withKey: "catIdleAnimation")
     }
     
-    func startCatWalkAnimation(xCoor: CGFloat) {
+    func startCatXMovement(xCoor: CGFloat) {
         if (xCoor < 0) {
             cat.xScale = -1
         } else {
@@ -114,7 +156,17 @@ class GameScene: SKScene {
         
         let force = CGVector(dx: xCoor, dy: 0.0)
         cat.physicsBody?.applyForce(force)
+        
+        if ((cat.physicsBody?.velocity.dx)! < 1000.0) {
+            startCatWalkAnimation()
+        } else {
+            startCatRunAnimation()
+        }
+    }
+    
+    func startCatWalkAnimation() {
         let walkAnimation = SKAction.animate(with: catWalkTextures, timePerFrame: 0.1)
+
         cat.run(walkAnimation, withKey: "catWalkAnimation")
     }
     
@@ -126,11 +178,9 @@ class GameScene: SKScene {
     
     func startCatJumpAnimation() {
         let jumpAnimation = SKAction.animate(with: catJumpTextures, timePerFrame: 0.1)
-        let force = CGVector(dx: 0.0, dy: 50.0)
-        let jumpMovement = SKAction.applyForce(force, duration: 0.5)
-        //cat.physicsBody?.applyForce(force)
-        let group = SKAction.group([jumpAnimation, jumpMovement])
-        cat.run(group, withKey: "catJump")
+        let force = CGVector(dx: 0.0, dy: 1000.0)
+        cat.physicsBody?.applyForce(force)
+        cat.run(jumpAnimation, withKey: "catJump")
     }
     
     func startCatAttackAnimation() {
@@ -150,54 +200,55 @@ class GameScene: SKScene {
     }
     
     //MARK: Movement Functions
-    //TODO: Work out kinks in movement
+    //TODO: Make animations finish before restarting
     override func keyDown(with event: NSEvent) {
-        var numKeyPresses = 0
         switch event.keyCode {
         case 0x0D: //up right
-            startCatJumpAnimation()
+            //TODO: Prevent flying
+                startCatJumpAnimation()
         case 0x02: //right
-            startCatWalkAnimation(xCoor: 150)
+            startCatXMovement(xCoor: 250)
         case 0x00: //left
-            startCatWalkAnimation(xCoor: -150)
+            startCatXMovement(xCoor: -250)
         default:
             startCatIdleAnimation()
         }
     }
     
-    
     //MARK: Basic game functions
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor.white
+        physicsWorld.contactDelegate = self
+        
+        self.setupPointLabel()
+
         self.setupCat()
         self.startCatIdleAnimation()
+        
+        //Create Several Fish
+        self.setupFish(xPosition: 0, yPosition: 0)
+        self.setupFish(xPosition: 100, yPosition: -10)
+        self.setupFish(xPosition: -100, yPosition: -10)
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        
+        //Remove the fish and add a point when the fish and cat contact
+        var fishBody: SKPhysicsBody
+        
+        if contact.bodyA.categoryBitMask == 1 && contact.bodyB.categoryBitMask == 2 {
+            fishBody = contact.bodyB
+            
+            fishBody.node?.removeFromParent()
+            //TODO: Correct Point Adding
+            userPoints += 1
+            pointLabel.text = "Points: \(userPoints)"
+        }
     }
     
     override func sceneDidLoad() {
-        
         self.setBackgroundMusic()
         
         self.lastUpdateTime = 0
-        
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
-        }
-        
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
-        
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
-            
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
-        }
     }
     
     override func update(_ currentTime: TimeInterval) {
