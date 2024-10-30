@@ -12,14 +12,20 @@ import AVFoundation
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var cat: SKSpriteNode!
+    var isAttacking: Bool = false
+    var yStartPosition: CGFloat = -400
+    var rat: SKSpriteNode!
     var pointLabel: SKLabelNode!
-    var userPoints: Double = 0
+    var healthLabel: SKLabelNode!
+    var userPoints: Int = 0
+    var userHealth: Int = 5
     var backgroundMusic: SKAudioNode?
     var entities = [GKEntity]()
     var graphs = [String : GKGraph]()
     
     private var lastUpdateTime : TimeInterval = 0
     
+    //MARK: Top Menu functions
     //Points
     private func setupPointLabel() {
         pointLabel = SKLabelNode(fontNamed: "Chalkduster")
@@ -28,6 +34,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         pointLabel.fontSize = 24
         pointLabel.position = CGPoint(x: 550, y: 600)
         addChild(pointLabel)
+    }
+    
+    //health
+    private func setupHealthLabel() {
+        healthLabel = SKLabelNode()
+        healthLabel.zPosition = 1
+        healthLabel.position = CGPoint(x: 350, y: 600)
+        
+        healthLabel.text = "❤️ ❤️ ❤️ ❤️ ❤️"
+        
+        addChild(healthLabel)
+    }
+    
+    private func updateHealthPoints() {
+        if (userHealth == 1) {
+            healthLabel.text = "❤️"
+        } else if (userHealth == 2) {
+            healthLabel.text = "❤️ ❤️"
+        } else if (userHealth == 3) {
+            healthLabel.text = "❤️ ❤️ ❤️"
+        } else if (userHealth == 4) {
+            healthLabel.text = "❤️ ❤️ ❤️ ❤️"
+        } else if (userHealth == 5) {
+            healthLabel.text = "❤️ ❤️ ❤️ ❤️ ❤️"
+        } else {
+            healthLabel.text = ""
+        }
     }
     
     //MARK: Fish functions
@@ -47,8 +80,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         fish.physicsBody?.affectedByGravity = false
         fish.physicsBody?.categoryBitMask = 2
         fish.physicsBody?.contactTestBitMask = 1
+        fish.physicsBody?.collisionBitMask = 0
         
         addChild(fish)
+    }
+    
+    //MARK: Rat functions
+    private var ratAtlas: SKTextureAtlas {
+        return SKTextureAtlas(named: "Rat")
+    }
+    
+    private var ratTexture: SKTexture {
+        return SKTexture(imageNamed: "rat0")
+    }
+    
+    private func setupRat(xPosition: CGFloat, yPosition: CGFloat) {
+        rat = SKSpriteNode(texture: ratTexture, size: CGSize(width: 100, height: 100))
+        rat.position = CGPoint(x: xPosition, y: yPosition)
+        rat.zPosition = 2
+        
+        //Physics
+        rat.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 100, height: 100))
+        rat.physicsBody?.allowsRotation = false
+        rat.physicsBody?.affectedByGravity = true
+        rat.physicsBody?.restitution = 1.5
+        rat.physicsBody?.categoryBitMask = 3
+        rat.physicsBody?.contactTestBitMask = 1
+        rat.physicsBody?.collisionBitMask = 1
+        
+        addChild(rat)
     }
     
     //MARK: Cat player functions
@@ -62,7 +122,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     private func setupCat() {
         cat = SKSpriteNode(texture: catTexture, size: CGSize(width: 70 * 3, height: 46 * 3))
-        cat.position = CGPoint(x: -1200, y: -400)
+        cat.position = CGPoint(x: -1200, y: yStartPosition)
         cat.zPosition = 2
         
         //Physics
@@ -72,7 +132,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cat.physicsBody?.linearDamping = 0.75
         cat.physicsBody?.friction = 0.1
         cat.physicsBody?.categoryBitMask = 1
-        cat.physicsBody?.contactTestBitMask = 2
+        cat.physicsBody?.contactTestBitMask = 2 | 3
+        cat.physicsBody?.collisionBitMask = 1
+        cat.physicsBody?.restitution = 0.25
 
         //World boundaries
         let boundaryX = SKConstraint.positionX(SKRange(lowerLimit: -1280, upperLimit: 1280))
@@ -83,6 +145,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     //MARK: Atlases
+    private var ratTextures: [SKTexture] {
+        return [
+            ratAtlas.textureNamed("rat0"),
+            ratAtlas.textureNamed("rat1"),
+            ratAtlas.textureNamed("rat2")
+        ]
+    }
+    
     private var catIdleTextures: [SKTexture] {
         return [
             catAtlas.textureNamed("idle0"),
@@ -141,6 +211,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     //MARK: Animations
     //Animations
+    func wait () {
+        let waitAction = SKAction.wait(forDuration: 2)
+        self.run(waitAction)
+    }
+    
+    func startRatAnimation() {
+        let ratAnimation = SKAction.animate(with: ratTextures, timePerFrame: 0.1)
+        
+        rat.run(SKAction.repeatForever(ratAnimation), withKey: "ratAnimation")
+    }
+    
+    func startRatMovement() {
+        let ratLeft = SKAction.scaleX(to: -1, duration: 0.1)
+        let ratRight = SKAction.scaleX(to: 1, duration: 0.1)
+        
+        let left = SKAction.move(to: CGPoint(x: rat.position.x - 100, y: rat.position.y), duration: 3)
+        let leftWithScale = SKAction.sequence([ratLeft, left])
+        let right = SKAction.move(to: CGPoint(x: rat.position.x + 100, y: rat.position.y), duration: 3)
+        let rightWithScale = SKAction.sequence([ratRight, right])
+        let sequence = SKAction.sequence([leftWithScale, rightWithScale])
+        
+        startRatAnimation()
+        rat.run(SKAction.repeatForever(sequence), withKey: "ratMovement")
+        
+    }
+    
     func startCatIdleAnimation() {
         let idleAnimation = SKAction.animate(with: catIdleTextures, timePerFrame: 0.1)
         
@@ -157,7 +253,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let force = CGVector(dx: xCoor, dy: 0.0)
         cat.physicsBody?.applyForce(force)
         
-        if ((cat.physicsBody?.velocity.dx)! < 1000.0) {
+        if ((cat.physicsBody?.velocity.dx)! < 500.0) {
             startCatWalkAnimation()
         } else {
             startCatRunAnimation()
@@ -171,9 +267,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func startCatRunAnimation() {
-        let runAnimation = SKAction.animate(with: catRunTextures, timePerFrame: 0.15)
+        let runAnimation = SKAction.animate(with: catRunTextures, timePerFrame: 0.05)
         
-        cat.run(SKAction.repeatForever(runAnimation), withKey: "catRunAnimation")
+        cat.run(runAnimation, withKey: "catRunAnimation")
     }
     
     func startCatJumpAnimation() {
@@ -183,10 +279,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cat.run(jumpAnimation, withKey: "catJump")
     }
     
+    func stopCatJumpForce() {
+        let force = CGVector(dx: 0.0, dy: -1000.0)
+        cat.physicsBody?.applyForce(force)
+    }
+    
     func startCatAttackAnimation() {
-        let attackAnimation = SKAction.animate(with: catAttackTextures, timePerFrame: 0.3)
+        isAttacking = true
+        let attackAnimation = SKAction.animate(with: catAttackTextures, timePerFrame: 0.1)
         
-        cat.run(SKAction.repeatForever(attackAnimation), withKey: "catAttackAnimation")
+        cat.run(attackAnimation, withKey: "catAttackAnimation")
     }
     
     //MARK: Background Music
@@ -202,16 +304,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     //MARK: Movement Functions
     //TODO: Make animations finish before restarting
     override func keyDown(with event: NSEvent) {
+        
         switch event.keyCode {
         case 0x0D: //up right
-            //TODO: Prevent flying
-                startCatJumpAnimation()
+            startCatJumpAnimation()
+            
+            if (cat.position.y > yStartPosition + 300) {
+                stopCatJumpForce()
+            }
         case 0x02: //right
             startCatXMovement(xCoor: 250)
         case 0x00: //left
             startCatXMovement(xCoor: -250)
+        case 0x31:
+            startCatAttackAnimation()
         default:
             startCatIdleAnimation()
+            isAttacking = false
         }
     }
     
@@ -219,29 +328,51 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
         
+        //Top Menu
         self.setupPointLabel()
+        self.setupHealthLabel()
 
+        //Cat
         self.setupCat()
         self.startCatIdleAnimation()
         
-        //Create Several Fish
+        //Rat
+        self.setupRat(xPosition: 600, yPosition: -400)
+        self.startRatMovement()
+        
+        //Several Fish
         self.setupFish(xPosition: 0, yPosition: 0)
         self.setupFish(xPosition: 100, yPosition: -10)
         self.setupFish(xPosition: -100, yPosition: -10)
+        
+        
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
-        
         //Remove the fish and add a point when the fish and cat contact
         var fishBody: SKPhysicsBody
         
-        if contact.bodyA.categoryBitMask == 1 && contact.bodyB.categoryBitMask == 2 {
+        if (contact.bodyA.categoryBitMask == 1 && contact.bodyB.categoryBitMask == 2) {
             fishBody = contact.bodyB
             
-            fishBody.node?.removeFromParent()
-            //TODO: Correct Point Adding
-            userPoints += 1
-            pointLabel.text = "Points: \(userPoints)"
+            if (fishBody.node?.removeFromParent() != nil) {
+                userPoints += 1
+                pointLabel.text = "Points: \(userPoints)"
+            }
+        }
+        
+        //Remove the rat if cat is attacking or subtract health if not
+        var ratBody: SKPhysicsBody
+        
+        if (contact.bodyA.categoryBitMask == 1 && contact.bodyB.categoryBitMask == 3) {
+            ratBody = contact.bodyB
+            
+            if (isAttacking) {
+                ratBody.node?.removeFromParent()
+            } else {
+                userHealth -= 1
+                updateHealthPoints()
+            }
         }
     }
     
