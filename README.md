@@ -38,8 +38,13 @@ There is a lot to say about what the game lacks (see FutureWork), but my main pu
 
 # Credits
 
-* Sneaky Adventure by Kevin MacLeod | https://incompetech.com/
+* Background Music: Sneaky Adventure by Kevin MacLeod | https://incompetech.com/
 Music promoted by https://www.chosic.com/free-music/all/
 Creative Commons CC BY 3.0
 https://creativecommons.org/licenses/by/3.0/
+* Cat: Gray Cat Asset Pack by Krystsina Staselovich at OpenGameArt.org
+* Green Fish: Retro Fish by EXCITESZZ on OpenGameArt.org
+* Rat: Rat/Cat/Dog by Tuomo Untinen at OpenGameArt.org
+* Tiles: Free Game Platform Tileset by Franco Giachetti at OpenGameArt.org
+* Background Picture: Sunrise by quantumelle at OpenGameArt.org
  
