@@ -6,7 +6,7 @@ This game is a single screen platformer game where the player plays as a cat. A 
 
 There is a lot to say about what the game lacks (see FutureWork), but my main purpose was to learn something new about programming. Some of the things I learned include how to animate with texture atlases and SKActions, how to apply basic physics to sprite nodes, how to deal with user input for movement and other interactions, using collision detection, and the importance of not forgetting to set the zPosition of your nodes. All in all, I definitely met my purpose to try something I've never done before and learn a lot from it. 
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video](https://youtu.be/dO_66kaHFEw)
 
 # Development Environment
 

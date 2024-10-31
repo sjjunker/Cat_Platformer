@@ -306,7 +306,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func keyDown(with event: NSEvent) {
         
         switch event.keyCode {
-        case 0x0D: //up right
+        case 0x0D: //up
             startCatJumpAnimation()
             
             if (cat.position.y > yStartPosition + 300) {
